@@ -13,7 +13,7 @@ class GameClient:
 
     def set_role(self, role):
         if self.game_started:
-            print("Erreur : Vous ne pouvez pas changer de rôle après le début de la partie.")
+            print("Erreur : Vous ne pouvez plus changer de rôle après le début de la partie.")
             return
 
         roles = ['villageois', 'vif d\'or', 'loup garou']
@@ -101,20 +101,31 @@ if __name__ == "__main__":
             client.set_name(player_name)
         else:
             print("Erreur : Le nom ne peut pas être vide. Veuillez réessayer.")
+    while client.role == None:
+      print("voici les roles presents : villageois, vif d'or, loup garou")
+      client.set_role(input("Veuillez en choisir un : ").strip())
 
     print(f"Bienvenue {client.player_name} !")
     print("Commandes disponibles : set_role, move, interact, get_game_state, start_game, quit")
 
     while True:
-        user_input = input("Entrez une commande : ").strip().split()
-        command = user_input[0]
-        args = user_input[1:]  
-
-        if command == "quit":
+      if client.role == None :
+         user_input = input(" : ").strip().split()
+         command = user_input[0]
+         args = user_input[1:]
+      else :
+         user_input = input("Entrez une commande : ").strip().split()
+         command = user_input[0]
+         args = user_input[1:] 
+         if command == "quit":
             print("Fin du jeu.")
             break
-        elif command == "start_game":
+         elif command == "start_game":
             client.game_started = True 
             print("La partie commence !")
-        else:
+         elif command == "help":
+            print("Commandes disponibles : set_role, move, interact, get_game_state, start_game, quit")
+         else:
             client.execute_command(command, *args)
+       
+         
