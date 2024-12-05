@@ -1,0 +1,60 @@
+// The LoupdorService service definition.
+service LoupdorService {
+  rpc CreateMap (MapSizeRequest) returns (MapSizeReply) {}
+  rpc TimerForTour (SecondForTimerRequest) returns (SecondForTimerReply) {}
+  rpc NbMaxPlayer (NbplayerRequest) returns (NbplayerReply) {}
+  rpc StartGame (StartGameRequest) returns (StartGameReply) {}
+  rpc Inscrption (InscriptionRequest) returns (InscriptionReply) {}
+  rpc Move (MoveRequest) returns (MoveReply) {}
+}
+
+message MapSizeRequest {
+  required int32 width = 1;
+  required int32 height = 2;
+}
+
+message MapSizeReply {
+  required string message = 1;
+}
+
+message SecondForTimerRequest {
+  required int32 timeSecond = 1;
+}
+
+message SecondForTimerReply {
+  required string message = 1;
+}
+
+message NbplayerRequest {
+  required int32 nbPlayers = 1;
+}
+
+message NbplayerReply {
+  required string message = 1;
+}
+
+message StartGameRequest {
+  required int32 isStarting = 1;
+}
+
+message StartGameReply {
+  required string message = 1;
+}
+
+message InscriptionRequest {
+  required string name = 1;
+  required string role = 2;
+}
+
+message InscriptionReply {
+  required string message = 1;
+}
+
+message MoveRequest {
+  required string name = 1;
+  required string direction = 2;
+}
+
+message MoveReply {
+  required string message = 1;
+}
