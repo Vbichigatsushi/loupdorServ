@@ -24,21 +24,30 @@ class GameClient:
             print("Erreur lors de la définition du rôle :", response.text)
 
     def move(self, direction):
-        if not self.game_started:
-            print("Erreur : Vous ne pouvez pas vous déplacer avant que la partie commence.")
-            return
+      if not self.game_started:
+         print("Erreur : Vous ne pouvez pas vous déplacer avant que la partie commence.")
+         return
 
-        directions = ['north', 'south', 'east', 'west']
-        if direction not in directions:
-            print("Erreur : Direction invalide. Choisissez parmi :", directions)
-            return
+      valid_directions = {
+         'NORTH': 'NORTH', 'NORD': 'NORTH', 'N': 'NORTH',
+         'SOUTH': 'SOUTH', 'SUD': 'SOUTH', 'S': 'SOUTH',
+         'EAST': 'EAST', 'EST': 'EAST', 'E': 'EAST',
+         'WEST': 'WEST', 'OUEST': 'WEST', 'O': 'WEST', 'W': 'WEST'
+      }
 
-        response = requests.post(f"{self.server_url}/move", json={"direction": direction})
-        if response.status_code == 200:
-            data = response.json()
-            print("Déplacement effectué :", data.get("new_position"))
-        else:
-            print("Erreur lors du déplacement :", response.text)
+      direction_upper = direction.upper()
+      normalized_direction = valid_directions.get(direction_upper)
+      if not normalized_direction:
+         print("Erreur : Direction invalide. Choisissez parmi :", list(valid_directions.keys()))
+         return
+
+      response = requests.post(f"{self.server_url}/move", json={"direction": normalized_direction})
+      if response.status_code == 200:
+         data = response.json()
+         print("Déplacement effectué :", data.get("new_position"))
+      else:
+         print("Erreur lors du déplacement :", response.text)
+
 
     def interact(self, object_name):
         if not self.game_started:
@@ -65,17 +74,18 @@ class GameClient:
             print("Erreur lors de la récupération de l'état :", response.text)
 
     def execute_command(self, command, *args):
-        commands = {
-            "set_role": lambda: self.set_role(*args),
-            "move": lambda: self.move(*args),
-            "interact": lambda: self.interact(*args),
-            "get_game_state": lambda: self.get_game_state(),
-        }
+      commands = {
+         "set_role": lambda: self.set_role(*args),
+         "move": lambda: self.move(*args) if args else print("Erreur : Veuillez préciser une direction (nord, sud, est, ouest)."),
+         "interact": lambda: self.interact(*args),
+         "get_game_state": lambda: self.get_game_state(),
+      }
 
-        if command in commands:
-            commands[command]()
-        else:
-            print(f"Erreur : Commande '{command}' non reconnue.")
+      if command in commands:
+         commands[command]()
+      else:
+         print(f"Erreur : Commande '{command}' non reconnue.")
+
 
 
 
