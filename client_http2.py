@@ -4,12 +4,18 @@ class GameClient:
     def __init__(self, server_url):
         self.server_url = server_url
         self.role = None
+        self.game_started = False  # Indique si la partie a commencé
 
     def set_role(self, role):
+        if self.game_started:
+            print("Erreur : Vous ne pouvez pas changer de rôle après le début de la partie.")
+            return
+
         roles = ['villageois', 'vif d\'or', 'loup garou']
         if role not in roles:
             print("Erreur : Rôle invalide. Choisissez parmi :", roles)
             return
+
         response = requests.post(f"{self.server_url}/set_role", json={"role": role})
         if response.status_code == 200:
             self.role = role
@@ -18,10 +24,15 @@ class GameClient:
             print("Erreur lors de la définition du rôle :", response.text)
 
     def move(self, direction):
+        if not self.game_started:
+            print("Erreur : Vous ne pouvez pas vous déplacer avant que la partie commence.")
+            return
+
         directions = ['north', 'south', 'east', 'west']
         if direction not in directions:
             print("Erreur : Direction invalide. Choisissez parmi :", directions)
             return
+
         response = requests.post(f"{self.server_url}/move", json={"direction": direction})
         if response.status_code == 200:
             data = response.json()
@@ -30,6 +41,10 @@ class GameClient:
             print("Erreur lors du déplacement :", response.text)
 
     def interact(self, object_name):
+        if not self.game_started:
+            print("Erreur : Vous ne pouvez pas interagir avant que la partie commence.")
+            return
+
         response = requests.post(f"{self.server_url}/interact", json={"object_name": object_name})
         if response.status_code == 200:
             data = response.json()
@@ -41,18 +56,46 @@ class GameClient:
         response = requests.get(f"{self.server_url}/state")
         if response.status_code == 200:
             data = response.json()
+            self.game_started = data.get("game_started", False)  # Mise à jour de l'état de la partie
             print("Carte actuelle :", data.get("map"))
             print("Objets autour :", data.get("nearby_objects"))
             print("Temps restant :", data.get("time_remaining"))
+            print("Partie commencée :", self.game_started)
         else:
             print("Erreur lors de la récupération de l'état :", response.text)
+
+    def execute_command(self, command, *args):
+        commands = {
+            "set_role": lambda: self.set_role(*args),
+            "move": lambda: self.move(*args),
+            "interact": lambda: self.interact(*args),
+            "get_game_state": lambda: self.get_game_state(),
+        }
+
+        if command in commands:
+            commands[command]()
+        else:
+            print(f"Erreur : Commande '{command}' non reconnue.")
+
 
 
 if __name__ == "__main__":
     server_url = "http://172.25.1.68:9999/"  # Adresse du serveur
     client = GameClient(server_url)
-    client.set_role("villageois")
-    client.get_game_state()
-    client.move("north")
-    #client.interact("potion magique")
-    client.get_game_state()
+
+    print("Bienvenue dans le jeu !")
+    print("Commandes disponibles : set_role, move, interact, get_game_state, start_game, quit")
+
+    while True:
+        user_input = input("Entrez une commande : ").strip().split()
+        command = user_input[0]  # Nom de la commande
+        args = user_input[1:]    # Arguments de la commande
+
+        if command == "quit":
+            print("Fin du jeu.")
+            break
+        elif command == "start_game":
+            client.game_started = True  # Simule le début de la partie
+            print("La partie commence !")
+        else:
+            client.execute_command(command, *args)
