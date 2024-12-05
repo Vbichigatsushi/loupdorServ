@@ -91,7 +91,7 @@ class GameClient:
 
 
 if __name__ == "__main__":
-    server_url = "http://172.25.1.68:9999/"  # Adresse du serveur
+    server_url = "http://localhost:9999/"  # Adresse du serveur
     client = GameClient(server_url)
 
     print("Bienvenue dans le jeu !")
