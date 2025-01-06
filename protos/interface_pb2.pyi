@@ -55,12 +55,14 @@ class StartGameReply(_message.Message):
     def __init__(self, message: _Optional[str] = ...) -> None: ...
 
 class InscriptionRequest(_message.Message):
-    __slots__ = ("name", "role")
+    __slots__ = ("name", "ip", "role")
     NAME_FIELD_NUMBER: _ClassVar[int]
+    IP_FIELD_NUMBER: _ClassVar[int]
     ROLE_FIELD_NUMBER: _ClassVar[int]
     name: str
+    ip: str
     role: str
-    def __init__(self, name: _Optional[str] = ..., role: _Optional[str] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., ip: _Optional[str] = ..., role: _Optional[str] = ...) -> None: ...
 
 class InscriptionReply(_message.Message):
     __slots__ = ("message",)
@@ -69,12 +71,12 @@ class InscriptionReply(_message.Message):
     def __init__(self, message: _Optional[str] = ...) -> None: ...
 
 class MoveRequest(_message.Message):
-    __slots__ = ("name", "direction")
-    NAME_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("ip", "direction")
+    IP_FIELD_NUMBER: _ClassVar[int]
     DIRECTION_FIELD_NUMBER: _ClassVar[int]
-    name: str
+    ip: str
     direction: str
-    def __init__(self, name: _Optional[str] = ..., direction: _Optional[str] = ...) -> None: ...
+    def __init__(self, ip: _Optional[str] = ..., direction: _Optional[str] = ...) -> None: ...
 
 class MoveReply(_message.Message):
     __slots__ = ("message",)

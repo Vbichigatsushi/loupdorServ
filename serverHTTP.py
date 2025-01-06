@@ -5,43 +5,111 @@ import protos.interface_pb2_grpc as interface2
 import protos.interface_pb2 as interface
 import grpc
 
+def runInscription(HOST, PORT, clientName, clientIp, clientRole):
+    with grpc.insecure_channel(f'{HOST}:{str(PORT)}') as channel:
+        stub = interface2.LoupdorServiceStub(channel)
+        response = stub.Inscrption(interface.InscriptionRequest(name=clientName, ip=clientIp, role=clientRole))
+        return response.message
+
+def runMove(HOST, PORT, clientIp, clientDirection):
+    with grpc.insecure_channel(f'{HOST}:{str(PORT)}') as channel:
+        stub = interface2.LoupdorServiceStub(channel)
+        response = stub.Move(interface.MoveRequest(ip=clientIp, direction=clientDirection))
+        return response.message
 
 class Handler(http.server.BaseHTTPRequestHandler):
 	def do_GET(self):
 		print(self.requestline)
 		buffer = self.rfile
-		print(json.loads(buffer.read(int(self.headers['Content-Length'])).decode("utf-8")))
+		variabeul = json.loads(buffer.read(int(self.headers['Content-Length'])).decode("utf-8"))
+		print("données reçu => " + str(variabeul))
 		self.send_response(200)
 		self.send_header('Content-Type', 'application/json')
 		self.end_headers()
-		responseBody = {
-			'test': 'value'
-		}
-		self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+		if ('name' in variabeul and 'role' in variabeul and 'order' in variabeul and variabeul['order'] == 'inscription'):
+			try: 
+				responseInsc = runInscription('172.25.1.15', 50051, variabeul['name'], str(self.client_address[0]) , variabeul['role'])
+				responseBody = {
+					'message': f'Bienvenue {variabeul["name"]} !',
+					'roleAttributed': str(responseInsc)
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+			except Exception as inst:
+				print(inst)
+				responseBody = {
+					'message': 'Client non inscrit une erreur s\'est produite !'
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+		elif ('direction' in variabeul and 'order' in variabeul and variabeul['order'] == 'move'):
+			try: 
+				responseMv = runMove('172.25.1.15', 50051, str(self.client_address[0]) , variabeul['direction'])
+				print(str(responseMv))
+				responseBody = {
+					'message': 'Mouvement effectué !',
+					'gridVue': responseMv
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+			except Exception as inst:
+				print(inst)
+				responseBody = {
+					'message': 'Mouvement non pris en compte !'
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+		# else :
+		# 	responseBody = {
+		# 		'message': 'arguments invalide',
+		# 		'position': '1,2'
+		# 	}
+		# 	self.wfile.write(json.dumps(responseBody).encode("utf-8"))
 
 
 	def do_POST(self):
 		print(self.requestline)
 		buffer = self.rfile
-		print(json.loads(buffer.read(int(self.headers['Content-Length'])).decode("utf-8")))
+		variabeul = json.loads(buffer.read(int(self.headers['Content-Length'])).decode("utf-8"))
+		print("données reçu => " + str(variabeul))
 		self.send_response(200)
 		self.send_header('Content-Type', 'application/json')
 		self.end_headers()
-		responseBody = {
-			'test': 'value'
-		}
-		self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+		if ('name' in variabeul and 'role' in variabeul and 'order' in variabeul and variabeul['order'] == 'inscription'):
+			try: 
+				responseInsc = runInscription('172.25.1.15', 50051, variabeul['name'], str(self.client_address[0]) , variabeul['role'])
+				responseBody = {
+					'message': f'Bienvenue {variabeul["name"]} !',
+					'roleAttributed': responseInsc
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+			except Exception as inst:
+				print(inst)
+				responseBody = {
+					'message': 'Client non inscrit une erreur s\'est produite !'
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+		elif ('direction' in variabeul and 'order' in variabeul and variabeul['order'] == 'move'):
+			try: 
+				responseMv = runMove('172.25.1.15', 50051, str(self.client_address[0]) , variabeul['direction'])
+				print(str(responseMv))
+				responseBody = {
+					'message': 'Mouvement effectué !',
+					'gridVue': str(responseMv)
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+			except Exception as inst:
+				print(inst)
+				responseBody = {
+					'message': 'Mouvement non pris en compte !'
+				}
+				self.wfile.write(json.dumps(responseBody).encode("utf-8"))
+		# else :
+		# 	responseBody = {
+		# 		'message': 'arguments invalide',
+		# 		'position': '1,2'
+		# 	}
+		# 	self.wfile.write(json.dumps(responseBody).encode("utf-8"))
 	
-		
 
 PORT = 9999
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print("serving at port", PORT)
     httpd.serve_forever()
-
-def run():
-    with grpc.insecure_channel('localhost:9998') as channel:
-        stub = interface2.InterfaceStub(channel)
-        response = stub.TimerForTour(interface.SecondForTimerRequest(timeSecond=20))
-        print("Greeter client received: " + response.message)
