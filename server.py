@@ -47,7 +47,7 @@ class MyTCPHandler (socketserver.BaseRequestHandler):
           # dessous = meme chose que les trois lignes du dessus
           # with open('requests/id.json', 'w') as f:
           #   f.wirte(request_json)
-           self.request.sendall(b"Requete prise en compte")
+           self.request.sendall(json.dumps({"status":"Requete prise en compte"}).encode('UTF-8'))
            
         # 5. Consulter le dossier response et attendre que le fichier <id>.json existe
         
@@ -71,21 +71,12 @@ class MyTCPHandler (socketserver.BaseRequestHandler):
         if 'action' not in request_json or 'role' not in request_json or 'move' not in request_json :
           self.request.sendall(b"Invalid.")
           
-    
-    
-        
-        # just send back the same data, but upper-cased
-        self.request.sendall(self.data.upper())
-
-
-
-
 
 
 # 1. Créer le serveur écoute TCP (with .... socket.server) : pour que les joueurs envoient des actions
 
 if __name__ == "__main__":
-    HOST, PORT = "172.25.1.15", 9999
+    HOST, PORT = "172.25.1.10", 9999
 
     # Create the server, binding to localhost on port 9999
     with socketserver.TCPServer((HOST, PORT), MyTCPHandler) as server:
