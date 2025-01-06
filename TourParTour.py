@@ -7,11 +7,12 @@ import concurrent.futures as futures
 import grpc
 
 #region variable globale
-player=dict
-grille=[]
-timertour=int
-start=False
-nbtour=int
+gridWidth=int
+gridHeight=int
+timeForRound=int
+maxPlayer=int
+game=False
+players={}
 #endregion
 
 #region récupération data pour tcp
@@ -41,16 +42,24 @@ def machin():
 #region récupération data pour http
 class LoupdorService(interface2.LoupdorServiceServicer):
     def CreateMap(self, request, context):
+        gridWidth=request.width
+        gridHeight=request.height
         return interface.MapSizeReply(message=f"Carte de taille {request.width},{request.height} créé !")
     def TimerForTour(self, request, context):
+        timeForRound=request.timeSecond
         return interface.SecondForTimerReply(message=f"Timer défini à {request.timeSecond}s.")
     def NbMaxPlayer(self, request, context):
+        maxPlayer=request.nbPlayers
         return interface.NbplayerReply(message=f"Nombre de joueur maximum défini à {request.nbPlayers}.")
     def StartGame(self, request, context):
-        return interface.StartGameReply(message=f"Partie démarée.")
+        game = True if request.isStarting else False
+        print(request.isStarting,game)
+        return interface.StartGameReply(message=f"Partie démarrée.")
     def Inscrption(self, request, context):
+        players[request.name]=[request.role]
         return interface.InscriptionReply(message=f"Joueur inscrit au role de {request.role}")
     def Move(self, request, context):
+        # appel fonction pour mouvement avec la direction (request.direction) comme paramètre
         return interface.MoveReply(message=f"Mouvement au {request.direction} pris en compte")
 
 def serve():
@@ -59,6 +68,13 @@ def serve():
     server.add_insecure_port("0.0.0.0:50051")
     server.start()
     server.wait_for_termination()
+#endregion
+
+#region moteur
+
+
+
+
 #endregion
 
 
