@@ -4,27 +4,27 @@ class GameClient:
     def __init__(self, server_url):
         self.server_url = server_url
         self.role = None
-        self.player_name = None 
+        self.name = None 
         self.game_started = False 
 
     def set_name(self, name):
-        """Définit le nom du joueur."""
-        self.player_name = name
+        self.name = name
 
-    def set_role(self, role):
+    def set_role(self):
         if self.game_started:
             print("Erreur : Vous ne pouvez plus changer de rôle après le début de la partie.")
             return
-
-        roles = ['villageois', 'vif d\'or', 'loup garou']
+        role = input("Veuillez en choisir un : ").strip()
+        roles = ["villageois", "vif or", "loup garou"]
+        role = role.strip()
         if role not in roles:
             print("Erreur : Rôle invalide. Choisissez parmi :", roles)
             return
 
-        response = requests.post(f"{self.server_url}/set_role", json={"role": role, "player_name": self.player_name})
+        response = requests.post(f"{self.server_url}/set_role", json={"role": role, "name": self.name,"order":"inscription"})
         if response.status_code == 200:
             self.role = role
-            print(f"Rôle attribué : {role}")
+            print(response.text)
         else:
             print("Erreur lors de la définition du rôle :", response.text)
 
@@ -34,10 +34,10 @@ class GameClient:
                return
 
          valid_directions = {
-               'NORTH': 'NORTH', 'NORD': 'NORTH', 'N': 'NORTH',
-               'SOUTH': 'SOUTH', 'SUD': 'SOUTH', 'S': 'SOUTH',
-               'EAST': 'EAST', 'EST': 'EAST', 'E': 'EAST',
-               'WEST': 'WEST', 'OUEST': 'WEST', 'O': 'WEST', 'W': 'WEST'
+               'NORTH': 'N', 'NORD': 'N', 'N': 'N',
+               'SOUTH': 'S', 'SUD': 'S', 'S': 'S',
+               'EAST': 'E', 'EST': 'E', 'E': 'E',
+               'WEST': 'W', 'OUEST': 'W', 'O': 'W', 'W': 'W'
          }
 
          direction_upper = direction.upper()
@@ -46,10 +46,10 @@ class GameClient:
                print("Erreur : Direction invalide. Choisissez parmi :", list(valid_directions.keys()))
                return
 
-         response = requests.post(f"{self.server_url}/move", json={"direction": normalized_direction, "player_name": self.player_name})
+         response = requests.post(f"{self.server_url}/move", json={"direction": normalized_direction,"order":"move"})
          if response.status_code == 200:
             data = response.json()
-            print("Déplacement effectué :", data.get("new_position"))
+            print("Déplacement effectué :", response.text)
          else:
             print("Erreur lors du déplacement :", response.text)
     def interact(self, object_name):
@@ -57,7 +57,7 @@ class GameClient:
             print("Erreur : Vous ne pouvez pas interagir avant que la partie commence.")
             return
 
-        response = requests.post(f"{self.server_url}/interact", json={"object_name": object_name, "player_name": self.player_name})
+        response = requests.post(f"{self.server_url}/interact", json={"object_name": object_name, "name": self.name})
         if response.status_code == 200:
             data = response.json()
             print("Résultat de l'interaction :", data.get("result"))
@@ -65,7 +65,7 @@ class GameClient:
             print("Erreur lors de l'interaction :", response.text)
 
     def get_game_state(self):
-        response = requests.get(f"{self.server_url}/state", params={"player_name": self.player_name})
+        response = requests.get(f"{self.server_url}/state", params={"name": self.name})
         if response.status_code == 200:
             data = response.json()
             self.game_started = data.get("game_started", False)
@@ -78,7 +78,7 @@ class GameClient:
 
     def execute_command(self, command, *args):
         commands = {
-            "set_role": lambda: self.set_role(*args),
+            "set_role": lambda: self.set_role(),
             "move": lambda: self.move(*args) if args else print("Erreur : Veuillez préciser une direction (nord, sud, est, ouest)."),
             "interact": lambda: self.interact(*args),
             "get_game_state": lambda: self.get_game_state(),
@@ -91,21 +91,21 @@ class GameClient:
 
 
 if __name__ == "__main__":
-    server_url = "http://localhost:9999/"  # Adresse du serveur
+    server_url = "http://172.25.1.11:9999/"  # Adresse du serveur
     client = GameClient(server_url)
 
     print("Bienvenue dans le jeu !")
-    while not client.player_name:
-        player_name = input("Entrez votre nom : ").strip()
-        if player_name:
-            client.set_name(player_name)
+    while not client.name:
+        name = input("Entrez votre nom : ").strip()
+        if name:
+            client.set_name(name)
         else:
             print("Erreur : Le nom ne peut pas être vide. Veuillez réessayer.")
     while client.role == None:
-      print("voici les roles presents : villageois, vif d'or, loup garou")
-      client.set_role(input("Veuillez en choisir un : ").strip())
+      print("voici les roles presents : villageois, vif or, loup garou")
+      client.set_role()
 
-    print(f"Bienvenue {client.player_name} !")
+    print(f"Bienvenue {client.name} !")
     print("Commandes disponibles : set_role, move, interact, get_game_state, start_game, quit")
 
     while True:
