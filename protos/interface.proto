@@ -43,7 +43,8 @@ message StartGameReply {
 
 message InscriptionRequest {
   required string name = 1;
-  required string role = 2;
+  required string ip = 2;
+  required string role = 3;
 }
 
 message InscriptionReply {
@@ -51,7 +52,7 @@ message InscriptionReply {
 }
 
 message MoveRequest {
-  required string name = 1;
+  required string ip = 1;
   required string direction = 2;
 }
 
